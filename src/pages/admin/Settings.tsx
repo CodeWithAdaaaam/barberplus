@@ -9,7 +9,6 @@ export default function Settings() {
   // --- ETATS ---
   const [services, setServices] = useState<any[]>([]);
   const [barbers, setBarbers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [showBarberModal, setShowBarberModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
@@ -38,7 +37,6 @@ export default function Settings() {
 
   // --- CHARGEMENT ---
   const loadData = async () => {
-    setLoading(true);
     try {
       const [resServices, resBarbers] = await Promise.all([
         supabase.from('Service').select('*').order('price', { ascending: false }),
@@ -48,8 +46,6 @@ export default function Settings() {
       if (resBarbers.data) setBarbers(resBarbers.data);
     } catch (err) {
       console.error("Erreur chargement:", err);
-    } finally {
-      setLoading(false);
     }
   };
 

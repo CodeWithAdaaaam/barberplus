@@ -59,7 +59,6 @@ const Booking: React.FC = () => {
     phone: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 1. CHARGEMENT DES SERVICES ET BARBIERS
   useEffect(() => {
@@ -169,7 +168,6 @@ const Booking: React.FC = () => {
     try {
       // Fix du décalage : ISO local manuel
       const startTimeISO = `${bookingData.date}T${bookingData.time}:00`;
-      const servicesTitles = selectedServices.map(s => s.title).join(', ');
       const requiredSpecs = Array.from(new Set(selectedServices.map(s => s.category)));
 
       const { error } = await supabase.from('Booking').insert([{
