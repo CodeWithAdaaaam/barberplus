@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trash2, Phone, Calendar, Clock, User, Scissors, RefreshCw, Lock } from "lucide-react";
+import { Trash2, Phone, Calendar, User, Scissors, RefreshCw, Lock } from "lucide-react";
 
 interface Booking {
   id: string;
@@ -82,7 +82,7 @@ const Admin: React.FC = () => {
     } else {
       console.log("Suppression réussie, statut:", status);
       // Recharger les données après suppression
-      loadData(); 
+      fetchBookings(); 
     }
   } catch (err) {
     console.error("Erreur système:", err);
