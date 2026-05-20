@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronLeft, ChevronRight, Check, Calendar, Clock, 
-  User, Scissors, Smile, Sparkles, Box, CheckCircle2, UserPlus, ArrowRight, Plus
+  ChevronLeft, ChevronRight, Check, Scissors, Smile, Sparkles, Box, CheckCircle2, UserPlus,  Plus
 } from "lucide-react";
 import { supabase } from "../lib/supabase"; 
 

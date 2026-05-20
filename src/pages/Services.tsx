@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
-  Scissors, Sparkles, Crown, FlaskConical, 
-  Heart, Smile, Clock, ArrowRight, Box 
+  Scissors, Sparkles, Crown, Smile, Clock, ArrowRight, Box 
 } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 import { initScrollReveal } from "@/hooks/useScrollReveal";
