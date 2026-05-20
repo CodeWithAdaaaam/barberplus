@@ -95,9 +95,9 @@ export default function CalendarView() {
   const handleToday = () => setCurrentDate(new Date());
 
   // --- LOGIQUE DRAG & DROP ---
-  const handleDragStart = (e: React.DragEvent, appt: Booking) => {
-    setDraggedAppt(appt);
-  };
+  const handleDragStart = (_e: React.DragEvent, appt: Booking) => {
+  setDraggedAppt(appt);
+};
 
   const handleDrop = async (e: React.DragEvent, barberId: string) => {
     e.preventDefault();
