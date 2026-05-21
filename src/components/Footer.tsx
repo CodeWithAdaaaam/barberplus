@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone } from 'lucide-react';
-import { FaInstagram, FaFacebookF, FaWhatsapp } from 'react-icons/fa';
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
 import Logo from './BPLogo'; // Assure-toi que le nom du fichier est correct (Logo.tsx ou BPLogo.tsx)
 
 const Footer: React.FC = () => {

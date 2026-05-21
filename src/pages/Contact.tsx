@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Instagram, Send, Clock, Trophy } from "lucide-react";
+import { MapPin, Phone, Send, Clock,} from "lucide-react";
 import { initScrollReveal } from "@/hooks/useScrollReveal";
 
 const Contact: React.FC = () => {
