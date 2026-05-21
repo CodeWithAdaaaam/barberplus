@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom"; // À importer en haut
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -49,6 +50,28 @@ const Booking: React.FC = () => {
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+  const serviceIdFromUrl = searchParams.get('serviceId');
+  
+  if (serviceIdFromUrl && dbServices.length > 0) {
+    const preSelectedService = dbServices.find(s => s.id === serviceIdFromUrl);
+    
+    if (preSelectedService) {
+      // 1. On sélectionne le service
+      setBookingData(prev => ({
+        ...prev,
+        serviceIds: [serviceIdFromUrl] 
+      }));
+      
+      // 2. On définit la catégorie pour l'affichage
+      setSelectedCategory(preSelectedService.category);
+      
+      // 3. On saute directement à l'étape 2 (Liste des services / Barbier)
+      setStep(2);
+    }
+  }
+}, [searchParams, dbServices]);
 
   const [bookingData, setBookingData] = useState({
     serviceIds: [] as string[], 
@@ -264,24 +287,47 @@ const Booking: React.FC = () => {
               </div>
               
               <div className="grid gap-3 mb-12">
-                {dbServices.filter(s => s.category === selectedCategory).map((s) => {
-                  const active = bookingData.serviceIds.includes(s.id);
-                  return (
-                    <button key={s.id} onClick={() => toggleService(s.id)}
-                      className={`flex justify-between items-center p-6 border rounded-2xl transition-all group ${active ? 'border-gold bg-gold/10 ring-1 ring-gold/20' : 'border-zinc-800 bg-zinc-900/30'}`}>
-                      <div className="text-left flex items-center gap-4">
-                         <div className={`w-6 h-6 border rounded-md flex items-center justify-center transition-all ${active ? 'bg-gold border-gold' : 'border-zinc-700'}`}>
-                            {active && <Check size={14} className="text-black stroke-[4]" />}
-                         </div>
-                         <div>
-                            <h3 className="text-lg font-bold uppercase tracking-tight">{s.title}</h3>
-                            <p className="text-zinc-500 text-[10px] mt-1 tracking-widest uppercase font-bold">{s.duration} MIN</p>
-                         </div>
-                      </div>
-                      <div className="text-xl font-black text-gold italic">{s.price} MAD</div>
-                    </button>
-                  );
-                })}
+                
+              {dbServices.filter(s => s.category === selectedCategory).map((s) => {
+  const active = bookingData.serviceIds.includes(s.id);
+  
+  // LOGIQUE DE MISE EN AVANT : On détecte le service "plus choisi"
+  const isMostPopular = s.title.toLowerCase().includes('plus choisi');
+
+  return (
+    <button 
+      key={s.id} 
+      onClick={() => toggleService(s.id)}
+      className={`flex justify-between items-center p-6 border rounded-2xl transition-all group relative ${
+        active ? 'border-gold bg-gold/10 ring-1 ring-gold/30' : 'border-zinc-800 bg-zinc-900/30'
+      } ${isMostPopular ? 'border-gold/50 shadow-[0_0_20px_rgba(201,168,76,0.15)]' : ''}`}
+    >
+      
+      {/* BADGE "LE PLUS CHOISI" S'AFFICHE SI LE TITRE CONTIENT LE MOT */}
+      {isMostPopular && (
+        <div className="absolute -top-2.5 left-6 bg-gold text-black text-[7px] font-bold px-3 py-1 rounded-full uppercase tracking-[0.2em] shadow-xl animate-pulse">
+          ★ Recommandé / Le plus choisi
+        </div>
+      )}
+
+      <div className="text-left flex items-center gap-5">
+         <div className={`w-6 h-6 border rounded-md flex items-center justify-center transition-all ${active ? 'bg-gold border-gold' : 'border-zinc-700'}`}>
+            {active && <Check size={14} className="text-black stroke-[4]" />}
+         </div>
+         <div>
+            {/* On utilise font-display pour les titres de services aussi */}
+            <h3 className="text-lg font-display font-semibold uppercase tracking-tight text-white group-hover:text-gold transition-colors">
+               {s.title.replace('(Le plus choisi)', '')} 
+            </h3>
+            <p className="text-zinc-500 text-[9px] mt-1 tracking-widest uppercase font-bold">
+               {s.duration} MINUTES D'EXPERTISE
+            </p>
+         </div>
+      </div>
+      <div className="text-xl font-display font-bold text-gold italic">{s.price} MAD</div>
+    </button>
+  );
+})}
               </div>
 
               <h2 className="text-2xl font-black mb-6 uppercase tracking-widest italic border-l-2 border-gold pl-3">Expert souhaité</h2>

@@ -1,247 +1,154 @@
-import React, { useState, useEffect } from "react";
-import { MapPin, Phone, Clock, MessageCircle, Send, CheckCircle } from "lucide-react";
+import React, { useEffect } from "react";
+import { motion } from "framer-motion";
+import { MapPin, Phone, Instagram, Send, Clock, Trophy } from "lucide-react";
 import { initScrollReveal } from "@/hooks/useScrollReveal";
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   useEffect(() => {
     initScrollReveal();
     window.scrollTo(0, 0);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    if (errors[e.target.name]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[e.target.name];
-        return next;
-      });
-    }
-  };
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "Le prénom est requis";
-    if (!formData.phone.trim()) newErrors.phone = "Le téléphone est requis";
-    if (!formData.message.trim()) newErrors.message = "Le message est requis";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validate()) {
-      setSubmitted(true);
-      setTimeout(() => {
-        setSubmitted(false);
-        setFormData({ firstName: "", phone: "", subject: "", message: "" });
-      }, 5000);
-    }
-  };
-
   return (
-    <div className="pt-[72px]">
-      {/* Header */}
-      <section className="py-16 md:py-24">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-12">
-          <div className="text-center mb-16">
-            <p data-reveal className="text-xs uppercase tracking-[0.08em] text-gold mb-4">CONTACT</p>
-            <h1 data-reveal className="font-display text-4xl md:text-5xl text-white mb-6" style={{ transitionDelay: "0.1s" }}>
-              Contactez-Nous
-            </h1>
-            <p data-reveal className="text-lg text-bp-muted max-w-[600px] mx-auto" style={{ transitionDelay: "0.2s" }}>
-              Une question ? Besoin d&apos;informations ? N&apos;hésitez pas à nous contacter.
-            </p>
+    <div className="pt-[100px] bg-black min-h-screen font-sans overflow-x-hidden">
+      
+      {/* 1. HEADER SECTION */}
+      <section className="py-16 md:py-24 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <motion.p 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            className="text-[10px] uppercase tracking-[0.6em] text-gold mb-4 font-black"
+          >
+            ENTRER EN CONTACT
+          </motion.p>
+          <motion.h1 
+            initial={{ y: 20, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }}
+            className="font-display text-6xl md:text-8xl text-white uppercase tracking-tighter italic"
+          >
+            Barber Plus 
+          </motion.h1>
+          <div className="w-24 h-[1px] bg-gold/50 mx-auto mt-8 shadow-[0_0_15px_rgba(201,168,76,0.3)]" />
+        </div>
+      </section>
+
+      {/* 2. CONTENT SECTION (INFO + FORM) */}
+      <section className="pb-24 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          
+          {/* CÔTÉ GAUCHE : INFOS DE LUXE */}
+          <div className="space-y-12">
+            <div>
+              <h2 className="text-3xl font-display text-white uppercase italic mb-8 border-l-4 border-gold pl-6">
+                Coordonnées <span className="text-gold"></span>
+              </h2>
+              <p className="text-zinc-500 leading-relaxed max-w-md">
+                Notre conciergerie est à votre disposition pour toute demande particulière concernant nos rituels de soin à Hay Riad.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* LIEN GOOGLE MAPS CLIQUABLE */}
+              <a 
+                href="https://maps.app.goo.gl/XUsXgKFzFaq86Cvs9" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-start gap-6 group cursor-pointer"
+              >
+                <div className="bg-gold p-4 text-black group-hover:bg-white transition-colors duration-500 shadow-xl shadow-gold/10">
+                  <MapPin size={28}/>
+                </div>
+                <div>
+                  <h4 className="text-lg font-display tracking-wider mb-1 text-white group-hover:text-gold transition-colors">LOCALISATION</h4>
+                  <p className="text-zinc-500 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                    City Center ,<br/>
+                    Hay Riad, Rabat — <span className="text-gold italic underline underline-offset-4">Ouvrir l'itinéraire</span>
+                  </p>
+                </div>
+              </a>
+
+              <div className="flex items-start gap-6 group">
+                <a 
+  href="tel:+212661217511" 
+  className="flex items-start gap-6 group cursor-pointer"
+>
+  <div className="bg-zinc-900 border border-zinc-800 p-4 text-gold group-hover:border-gold group-hover:bg-gold group-hover:text-black transition-all duration-500 shadow-xl shadow-gold/5">
+    <Phone size={28}/>
+  </div>
+  <div>
+    <h4 className="text-lg font-display tracking-wider mb-1 text-white group-hover:text-gold transition-colors uppercase italic font-bold">LIGNE DIRECTE</h4>
+    <p className="text-zinc-500 leading-relaxed group-hover:text-zinc-300 transition-colors">
+      +212 661-217511 — <span className="text-gold italic underline underline-offset-4 font-medium">Appeler le salon</span>
+    </p>
+  </div>
+</a>
+              </div>
+
+              <div className="flex items-start gap-6 group">
+                <div className="bg-zinc-900 border border-zinc-800 p-4 text-gold group-hover:border-gold transition-all duration-500">
+                  <Clock size={28}/>
+                </div>
+                <div>
+                  <h4 className="text-lg font-display tracking-wider mb-1 text-white">HORAIRES D'EXCELLENCE</h4>
+                  <p className="text-zinc-500 leading-relaxed">Lundi — Dimanche : 09:00 - 22:00</p>
+                  
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left Column - Info */}
-            <div data-reveal>
-              <div className="space-y-8 mb-10">
-                {/* Address */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-bp-card border border-bp-border flex items-center justify-center text-gold flex-shrink-0">
-                    <MapPin size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium mb-1">Adresse</h3>
-                    <p className="text-bp-muted text-sm">
-                      Hay Riad, Rabat, Maroc
-                    </p>
-                  </div>
+          {/* CÔTÉ DROIT : FORMULAIRE DE LUXE */}
+          <div className="relative">
+            <div className="absolute -inset-4 bg-gold/5 blur-3xl rounded-full opacity-50" />
+            <form className="relative bg-zinc-900/50 border border-zinc-800 p-8 md:p-12 rounded-[3rem] shadow-2xl space-y-6 backdrop-blur-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-4">Votre Nom</label>
+                  <input type="text" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold transition-all font-bold placeholder:text-zinc-800" placeholder="NOM COMPLET" />
                 </div>
-
-                {/* Phone */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-bp-card border border-bp-border flex items-center justify-center text-gold flex-shrink-0">
-                    <Phone size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium mb-1">Téléphone</h3>
-                    <a href="tel:+212661217511" className="text-bp-muted text-sm hover:text-gold transition-colors">
-                      +212 661-217511
-                    </a>
-                  </div>
-                </div>
-
-                {/* Hours */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-bp-card border border-bp-border flex items-center justify-center text-gold flex-shrink-0">
-                    <Clock size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium mb-1">Horaires d&apos;ouverture</h3>
-                    <p className="text-bp-muted text-sm">
-                      Lundi – Dimanche : 9h – 22h
-                      <br />
-                      <span className="text-gold">Ouvert 7j/7</span>
-                    </p>
-                  </div>
-                </div>
-
-                {/* WhatsApp */}
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-[#25D366]/10 border border-[#25D366]/30 flex items-center justify-center text-[#25D366] flex-shrink-0">
-                    <MessageCircle size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-medium mb-1">WhatsApp</h3>
-                    <a
-                      href="https://wa.me/212600000000"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#25D366] text-sm hover:underline"
-                    >
-                      Écrivez-nous sur WhatsApp
-                    </a>
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-4">Téléphone</label>
+                  <input type="tel" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold transition-all font-bold placeholder:text-zinc-800" placeholder="06..." />
                 </div>
               </div>
-
-              {/* Google Maps Embed */}
-              <div className="rounded-xl border border-bp-border overflow-hidden aspect-video">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3308.938768896914!2d-6.8520!3d33.9690!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda76c719a162e41%3A0x8465a4c9c2c2f5c0!2sHay%20Riad%2C%20Rabat%2C%20Morocco!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, filter: "grayscale(100%) invert(92%)" }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Barber Plus Location"
-                />
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-4">Sujet de votre demande</label>
+                <input type="text" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold transition-all font-bold placeholder:text-zinc-800" placeholder="EX: RÉSERVATION PRIVÉE" />
               </div>
-            </div>
 
-            {/* Right Column - Form */}
-            <div data-reveal style={{ transitionDelay: "0.15s" }}>
-              <div className="bg-bp-card border border-bp-border rounded-xl p-8">
-                <h2 className="font-display text-2xl text-white mb-6">Envoyez-nous un message</h2>
-
-                {submitted ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <CheckCircle size={48} className="text-gold mb-4" />
-                    <h3 className="text-white font-display text-xl mb-2">Message envoyé !</h3>
-                    <p className="text-bp-muted text-sm">Nous vous répondrons dans les plus brefs délais.</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* First Name */}
-                    <div>
-                      <label className="block text-xs uppercase tracking-[0.08em] text-bp-muted mb-2">
-                        Prénom <span className="text-gold">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="Votre prénom"
-                        className={`w-full bg-bp-bg border rounded-md px-4 py-3.5 text-white placeholder:text-bp-tertiary focus:outline-none focus:border-gold focus:shadow-gold-lg transition-all ${
-                          errors.firstName ? "border-red-500" : "border-bp-border"
-                        }`}
-                      />
-                      {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-xs uppercase tracking-[0.08em] text-bp-muted mb-2">
-                        Téléphone <span className="text-gold">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="Votre numéro de téléphone"
-                        className={`w-full bg-bp-bg border rounded-md px-4 py-3.5 text-white placeholder:text-bp-tertiary focus:outline-none focus:border-gold focus:shadow-gold-lg transition-all ${
-                          errors.phone ? "border-red-500" : "border-bp-border"
-                        }`}
-                      />
-                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                    </div>
-
-                    {/* Subject */}
-                    <div>
-                      <label className="block text-xs uppercase tracking-[0.08em] text-bp-muted mb-2">
-                        Sujet
-                      </label>
-                      <select
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        className="w-full bg-bp-bg border border-bp-border rounded-md px-4 py-3.5 text-white focus:outline-none focus:border-gold focus:shadow-gold-lg transition-all appearance-none cursor-pointer"
-                      >
-                        <option value="">Sélectionnez un sujet</option>
-                        <option value="rendez-vous">Rendez-vous</option>
-                        <option value="information">Information</option>
-                        <option value="reclamation">Réclamation</option>
-                        <option value="autre">Autre</option>
-                      </select>
-                    </div>
-
-                    {/* Message */}
-                    <div>
-                      <label className="block text-xs uppercase tracking-[0.08em] text-bp-muted mb-2">
-                        Message <span className="text-gold">*</span>
-                      </label>
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        placeholder="Votre message..."
-                        rows={5}
-                        className={`w-full bg-bp-bg border rounded-md px-4 py-3.5 text-white placeholder:text-bp-tertiary focus:outline-none focus:border-gold focus:shadow-gold-lg transition-all resize-none ${
-                          errors.message ? "border-red-500" : "border-bp-border"
-                        }`}
-                      />
-                      {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-gold text-bp-bg py-4 rounded-lg font-semibold text-sm hover:bg-gold-light transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      <Send size={16} />
-                      Envoyer le message
-                    </button>
-                  </form>
-                )}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-4">Message</label>
+                <textarea rows={4} className="w-full bg-black border border-zinc-800 p-5 rounded-3xl text-white outline-none focus:border-gold transition-all font-bold placeholder:text-zinc-800" placeholder="COMMENT POUVONS-NOUS VOUS SUBERLIMEZ ?"></textarea>
               </div>
-            </div>
+
+              <button className="w-full bg-gold text-black py-6 rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-white transition-all duration-700 shadow-xl shadow-gold/20 flex items-center justify-center gap-4 group">
+                Envoyer au Salon
+                <Send size={16} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500" />
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. MINI MAP PREVIEW (Optionnel) */}
+      <section className="py-20 px-6 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="h-64 md:h-96 w-full rounded-[3rem] overflow-hidden grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-1000 border border-zinc-800">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4769.46237634848!2d-6.8643379!3d33.9695303!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda76d8f3f52efb9%3A0x12452fa2ea21d4a8!2sBarber%20Plus!5e1!3m2!1sfr!2sma!4v1779382313179!5m2!1sfr!2sma" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0 }} 
+              allowFullScreen 
+              loading="lazy"
+            ></iframe>
           </div>
         </div>
       </section>
+
     </div>
   );
 };

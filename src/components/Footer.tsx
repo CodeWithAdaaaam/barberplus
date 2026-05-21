@@ -1,107 +1,115 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { MapPin, Phone, Clock, Instagram } from "lucide-react";
-import BPLogo from "./BPLogo";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { MapPin, Phone } from 'lucide-react';
+import { FaInstagram, FaFacebookF, FaWhatsapp } from 'react-icons/fa';
+import Logo from './BPLogo'; // Assure-toi que le nom du fichier est correct (Logo.tsx ou BPLogo.tsx)
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-bp-bg border-t border-bp-border">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-12 pt-16 pb-8">
-        {/* Top row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-          {/* Logo Column */}
-          <div className="flex flex-col items-center md:items-start">
-            <BPLogo size="lg" />
-            <p className="mt-6 text-bp-muted text-sm text-center md:text-left leading-relaxed">
-              Votre barbier de confiance à Hay Riad, Rabat. Une expérience de coiffure masculine premium.
+    <footer className="bg-black border-t border-white/5 pt-24 pb-12 px-6 overflow-hidden font-sans">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Grille Principale 4 Colonnes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+          
+          {/* Colonne 1 : Logo & Identité */}
+          <div className="space-y-6">
+            <Logo size="md" />
+            <p className="text-zinc-500 text-sm leading-relaxed max-w-xs italic font-light">
+              L'excellence de la haute coiffure masculine à Hay Riad. <br/>
+              Une signature de style, une précision absolue.
             </p>
-            <div className="flex items-center gap-4 mt-6">
-              <a
-                href="https://instagram.com/barberplus"
-                target="_blank"
+          </div>
+
+          {/* Colonne 2 : Navigation Rapide */}
+          <div>
+            <h4 className="font-display text-white text-xl uppercase italic mb-8 tracking-wider">Navigation</h4>
+            <ul className="space-y-4 text-zinc-500 text-[10px] uppercase tracking-[0.3em] font-bold">
+              <li><Link to="/" className="hover:text-gold transition-colors duration-300">Accueil</Link></li>
+              <li><Link to="/services" className="hover:text-gold transition-colors duration-300">Services & Tarifs</Link></li>
+              <li><Link to="/galerie" className="hover:text-gold transition-colors duration-300">La Galerie</Link></li>
+              <li><Link to="/contact" className="hover:text-gold transition-colors duration-300">Nous Contacter</Link></li>
+            </ul>
+          </div>
+
+          {/* Colonne 3 : Contact & Localisation Directe */}
+          <div>
+            <h4 className="font-display text-white text-xl uppercase italic mb-8 tracking-wider">Le Salon</h4>
+            <div className="space-y-6">
+              {/* LIEN GOOGLE MAPS */}
+              <a 
+                href="https://maps.app.goo.gl/XUsXgKFzFaq86Cvs9" 
+                target="_blank" 
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full border border-bp-border flex items-center justify-center text-bp-muted hover:text-gold hover:border-gold transition-colors duration-200"
+                className="flex items-start gap-4 group"
               >
-                <Instagram size={18} />
+                <MapPin size={20} className="text-gold shrink-0 group-hover:scale-110 transition-transform duration-500"/> 
+                <span className="text-zinc-500 text-sm group-hover:text-white transition-colors leading-relaxed">
+                  City Center nimero B4<br/> Hay Riad, Rabat
+                </span>
+              </a>
+
+              {/* LIEN TÉLÉPHONE DIRECT */}
+              <a 
+                href="tel:+212661217511" 
+                className="flex items-center gap-4 group"
+              >
+                <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold group-hover:bg-gold group-hover:text-black transition-all duration-500">
+                   <Phone size={14} />
+                </div>
+                <span className="text-zinc-500 text-sm font-bold group-hover:text-white transition-colors italic tracking-tight">
+                  +212 661-217511
+                </span>
               </a>
             </div>
           </div>
 
-          {/* Navigation Column */}
-          <div className="text-center md:text-left">
-            <h4 className="text-xs font-medium uppercase tracking-[0.08em] text-bp-muted mb-6">
-              Navigation
-            </h4>
-            <ul className="space-y-3">
-              {[
-                { to: "/", label: "Accueil" },
-                { to: "/services", label: "Services" },
-                { to: "/galerie", label: "Galerie" },
-                { to: "/booking", label: "Rendez-Vous" },
-                { to: "/contact", label: "Contact" },
-              ].map((link) => (
-                <li key={link.to}>
-                  <Link
-                    to={link.to}
-                    className="text-sm text-bp-muted hover:text-gold transition-colors duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Column */}
-          <div className="text-center md:text-left">
-            <h4 className="text-xs font-medium uppercase tracking-[0.08em] text-bp-muted mb-6">
-              NOUS TROUVER
-            </h4>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 justify-center md:justify-start">
-                <MapPin size={16} className="text-gold mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-bp-muted">
-                  Hay Riad, Rabat, Maroc
-                </span>
-              </div>
-              <div className="flex items-center gap-3 justify-center md:justify-start">
-                <Phone size={16} className="text-gold flex-shrink-0" />
-                <a
-                  href="tel:+212661217511"
-                  className="text-sm text-bp-muted hover:text-gold transition-colors"
-                >
-                  +212 661-217511
-                </a>
-              </div>
-              <div className="flex items-start gap-3 justify-center md:justify-start">
-                <Clock size={16} className="text-gold mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-bp-muted">
-                  Lun – Dim : 9h – 22h
-                  <br />
-                  <span className="text-xs">Ouvert 7j/7</span>
-                </span>
-              </div>
+          {/* Colonne 4 : Réseaux Sociaux Prestige */}
+          <div>
+            <h4 className="font-display text-white text-xl uppercase italic mb-8 tracking-wider">Social</h4>
+            <div className="flex gap-4">
+              <a href="https://www.instagram.com/barber.plus.rabat/" className="w-12 h-12 rounded-2xl border border-white/5 bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:border-gold/50 hover:text-gold transition-all duration-500 group">
+                <FaInstagram size={20} className="group-hover:scale-110 transition-transform" />
+              </a>
+              <a 
+                href="https://wa.me/212661217511" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-12 h-12 rounded-2xl border border-white/5 bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:border-green-500/50 hover:text-green-500 transition-all duration-500 group"
+              >
+                <FaWhatsapp size={22} className="group-hover:scale-110 transition-transform" />
+              </a>
             </div>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-bp-border mt-12 pt-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-bp-tertiary">
-              © 2026 Barber Plus. Tous droits réservés.
+            <p className="text-[9px] text-zinc-600 uppercase tracking-[0.2em] mt-6 font-bold">
+              Disponible sur rendez-vous uniquement
             </p>
-            <div className="flex items-center gap-4 text-xs text-bp-tertiary">
-              <span className="hover:text-bp-muted cursor-pointer transition-colors">
-                Politique de confidentialité
-              </span>
-              <span>·</span>
-              <span className="hover:text-bp-muted cursor-pointer transition-colors">
-                Conditions d&apos;utilisation
-              </span>
-            </div>
           </div>
+
         </div>
+
+        {/* --- BARRE DE SIGNATURE FINALE --- */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-t border-white/5 pt-10 mt-10">
+          
+          {/* Copyright Barber Plus */}
+          <p className="text-[10px] text-zinc-600 uppercase tracking-[0.3em] font-medium">
+            © 2026 Barber Plus Hay Riad. Tous droits réservés.
+          </p>
+          
+          {/* TA SIGNATURE PORTFOLIO */}
+          <p className="text-[10px] text-zinc-600 uppercase tracking-[0.3em] font-medium">
+            Créé par{" "}
+            <a 
+              href="https://ae-agency.vercel.app/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gold hover:text-white transition-all duration-300 italic underline underline-offset-8 decoration-gold/30 hover:decoration-white font-bold"
+            >
+              Coding with Adam
+            </a>
+          </p>
+
+        </div>
+
       </div>
     </footer>
   );
