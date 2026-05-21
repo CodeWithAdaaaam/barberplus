@@ -15,14 +15,14 @@ const myThreeImages = [
   {
     id: 2,
     src: "/images/IMG_1309.jpg",
-    alt: "Taille de Barbe Traditionnelle",
-    category: "Barbe"
+    alt: "",
+    category: ""
   },
   {
     id: 3,
     src: "/images/IMG_5351.JPG",
-    alt: "Soin Visage Prestige",
-    category: "Soins"
+    alt: "",
+    category: ""
   }
 ];
 
