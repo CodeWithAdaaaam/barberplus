@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Phone } from "lucide-react";
 import BPLogo from "./BPLogo";
 
 const navLinks = [
@@ -16,56 +16,48 @@ const Navbar: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Fermer le menu lors du changement de page
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  // Bloquer le scroll du site quand le menu est ouvert
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
   }, [mobileOpen]);
 
   const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname === path;
+    return path === "/" ? location.pathname === "/" : location.pathname === path;
   };
 
   return (
     <>
+      {/* 1. BARRE DE NAVIGATION PRINCIPALE (Doit être au-dessus de tout) */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-bp-bg/95 backdrop-blur-xl border-b border-bp-border/50"
-            : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 transition-all duration-500 flex items-center h-[80px] md:h-[90px] ${
+          scrolled || mobileOpen ? "bg-[#050505] border-b border-gold/10 shadow-2xl" : "bg-transparent"
         }`}
+        style={{ zIndex: 1001 }}
       >
-        <div className="max-w-[1200px] mx-auto px-6 md:px-12 h-[72px] flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+        <div className="max-w-[1400px] w-full mx-auto px-6 md:px-12 flex items-center justify-between">
+          {/* Logo cliquable */}
+          <Link to="/" className="relative z-[1002] hover:opacity-80 transition-opacity">
             <BPLogo size="sm" />
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Menu Desktop */}
+          <div className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive(link.to)
-                    ? "text-gold"
-                    : "text-white/80 hover:text-gold"
+                className={`text-[10px] uppercase tracking-[0.4em] font-bold transition-all duration-300 ${
+                  isActive(link.to) ? "text-gold underline underline-offset-8" : "text-white/60 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -73,58 +65,80 @@ const Navbar: React.FC = () => {
             ))}
             <Link
               to="/booking"
-              className="bg-gold text-bp-bg px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-gold-light transition-colors duration-200"
+              className="bg-gold text-black px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-gold/20"
             >
-              Réserver
+              Prendre Rang
             </Link>
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Bouton Hamburger Mobile (z-index très haut pour rester cliquable) */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-white p-2"
-            aria-label="Toggle menu"
+            className="md:hidden text-gold p-2 relative z-[1002] active:scale-90 transition-transform"
+            aria-label="Menu"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileOpen ? <X size={30} /> : <Menu size={30} />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* 2. MENU DÉROULANT MOBILE COMPLET */}
       <div
-        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
-          mobileOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        className={`fixed inset-0 transition-all duration-500 ease-in-out md:hidden ${
+          mobileOpen ? "visible opacity-100" : "invisible opacity-0"
         }`}
+        style={{ zIndex: 1000 }} // Juste en dessous de la barre de nav
       >
-        <div
-          className="absolute inset-0 bg-bp-overlay"
-          onClick={() => setMobileOpen(false)}
+        {/* Fond d'obscurcissement (clic pour fermer) */}
+        <div 
+          className="absolute inset-0 bg-black/80 backdrop-blur-md" 
+          onClick={() => setMobileOpen(false)} 
         />
+
+        {/* Contenu du Menu */}
         <div
-          className={`absolute top-[72px] left-0 right-0 bg-bp-bg border-b border-bp-border transform transition-transform duration-300 ${
+          className={`absolute top-0 left-0 right-0 bg-[#0A0A0A] border-b border-gold/20 pt-[100px] pb-12 px-8 transform transition-transform duration-500 ease-out shadow-[0_30px_60px_rgba(0,0,0,0.8)] ${
             mobileOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
-          <div className="px-6 py-6 flex flex-col gap-1">
+          {/* Filigrane décoratif */}
+          <div className="absolute top-32 right-6 opacity-[0.03] text-white font-display text-9xl italic pointer-events-none">
+            BP
+          </div>
+
+          <div className="flex flex-col gap-2 relative z-10">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`py-4 text-lg font-medium border-b border-bp-border/50 transition-colors ${
-                  isActive(link.to)
-                    ? "text-gold"
-                    : "text-white/80 hover:text-gold"
+                onClick={() => setMobileOpen(false)} // Fermeture explicite au clic
+                className={`py-5 text-3xl font-display uppercase italic tracking-tighter border-b border-white/5 flex justify-between items-center transition-colors active:text-gold ${
+                  isActive(link.to) ? "text-gold" : "text-white"
                 }`}
               >
                 {link.label}
+                {isActive(link.to) && <div className="w-2 h-2 bg-gold rounded-full shadow-[0_0_12px_#C9A84C]" />}
               </Link>
             ))}
-            <Link
-              to="/booking"
-              className="mt-4 bg-gold text-bp-bg px-6 py-3.5 rounded-md text-center font-semibold hover:bg-gold-light transition-colors"
-            >
-              Réserver
-            </Link>
+            
+            <div className="mt-10 space-y-6">
+              {/* Bouton de réservation mobile */}
+              <Link
+                to="/booking"
+                onClick={() => setMobileOpen(false)}
+                className="block w-full bg-gold text-black py-5 rounded-2xl text-center font-black uppercase text-xs tracking-[0.2em] shadow-2xl active:scale-[0.98] transition-transform"
+              >
+                Réserver ma séance
+              </Link>
+              
+              {/* Téléphone cliquable */}
+              <a 
+                href="tel:+212661217511" 
+                className="flex items-center justify-center gap-3 text-zinc-500 text-[10px] font-bold tracking-[0.3em] uppercase py-2 active:text-gold transition-colors"
+              >
+                <Phone size={14} className="text-gold" /> +212 661-217511
+              </a>
+            </div>
           </div>
         </div>
       </div>

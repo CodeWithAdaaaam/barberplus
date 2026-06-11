@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { format, parseISO, differenceInMinutes, addMinutes, addDays, startOfDay, endOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, RefreshCw, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Plus, X, Clock, Trash2, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const PIXELS_PER_HOUR = 100;
+const PIXELS_PER_HOUR = 120; // Augmenté pour plus d'espace vertical
 const SNAP_MINUTES = 15;
 
 interface Barber {
@@ -18,7 +19,9 @@ interface Service {
   title: string;
   price: number;
   duration: number;
+  category: string;
 }
+
 
 interface Booking {
   id: string;
@@ -34,7 +37,6 @@ interface Booking {
 }
 
 export default function CalendarView() {
-  // --- ETATS ---
   const [currentDate, setCurrentDate] = useState(new Date());
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -42,9 +44,9 @@ export default function CalendarView() {
   const [settings] = useState({ start_hour: 9, end_hour: 21 }); 
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [now, setNow] = useState(new Date());
 
-  // Drag & Drop
-  const [draggedAppt, setDraggedAppt] = useState<Booking | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Modale
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,7 +55,6 @@ export default function CalendarView() {
     clientName: '', clientPhone: '', serviceId: '', barberId: '', startTime: ''
   });
 
-  // --- CHARGEMENT DES DONNEES ---
   const loadData = async () => {
     setIsRefreshing(true);
     const start = startOfDay(currentDate).toISOString();
@@ -78,73 +79,43 @@ export default function CalendarView() {
 
   useEffect(() => {
     loadData();
-
-    const channel = supabase
-      .channel('calendar-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Booking' }, () => {
-        loadData();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const timer = setInterval(() => setNow(new Date()), 60000); // Update ligne temps réel
+    return () => clearInterval(timer);
   }, [currentDate]);
 
-  // --- NAVIGATION ---
+  // --- LOGIQUE VISUELLE ---
+  const getTop = (startTime: string) => {
+    const date = parseISO(startTime);
+    const dayStart = new Date(date);
+    dayStart.setHours(settings.start_hour, 0, 0, 0);
+    return (differenceInMinutes(date, dayStart) / 60) * PIXELS_PER_HOUR;
+  };
+
+  const getHeight = (duration: number) => {
+    return (duration / 60) * PIXELS_PER_HOUR;
+  };
+
+  // Ligne de l'heure actuelle
+  const getCurrentTimeTop = () => {
+    const dayStart = new Date(now);
+    dayStart.setHours(settings.start_hour, 0, 0, 0);
+    const diff = differenceInMinutes(now, dayStart);
+    if (diff < 0 || diff > (settings.end_hour - settings.start_hour) * 60) return null;
+    return (diff / 60) * PIXELS_PER_HOUR;
+  };
+
+  // --- ACTIONS ---
   const handlePrevDay = () => setCurrentDate(prev => addDays(prev, -1));
   const handleNextDay = () => setCurrentDate(prev => addDays(prev, 1));
   const handleToday = () => setCurrentDate(new Date());
 
-  // --- LOGIQUE DRAG & DROP ---
-  const handleDragStart = (_e: React.DragEvent, appt: Booking) => {
-  setDraggedAppt(appt);
-};
-
-  const handleDrop = async (e: React.DragEvent, barberId: string) => {
-    e.preventDefault();
-    if (!draggedAppt) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top + e.currentTarget.scrollTop;
-    const minutesFromStart = (offsetY / PIXELS_PER_HOUR) * 60;
-    const snappedMinutes = Math.round(minutesFromStart / SNAP_MINUTES) * SNAP_MINUTES;
-
-    const newStart = new Date(currentDate);
-    newStart.setHours(settings.start_hour, 0, 0, 0);
-    const finalDate = addMinutes(newStart, snappedMinutes);
-
-    const { error } = await supabase
-      .from('Booking')
-      .update({ 
-        startTime: finalDate.toISOString(), 
-        barberId: barberId 
-      })
-      .eq('id', draggedAppt.id);
-
-    if (error) alert("Erreur de déplacement : " + error.message);
-    setDraggedAppt(null);
-  };
-
-  // --- GESTION MODALE ---
   const openNewModal = () => {
     setEditingAppt(null);
     setFormData({
-      clientName: '',
-      clientPhone: '',
+      clientName: '', clientPhone: '',
       serviceId: services[0]?.id || '',
       barberId: barbers[0]?.id || '',
       startTime: format(new Date(), 'HH:mm')
-    });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (appt: Booking) => {
-    setEditingAppt(appt);
-    setFormData({
-      clientName: appt.clientName,
-      clientPhone: appt.clientPhone,
-      serviceId: appt.serviceId,
-      barberId: appt.barberId,
-      startTime: format(parseISO(appt.startTime), 'HH:mm')
     });
     setIsModalOpen(true);
   };
@@ -162,187 +133,177 @@ export default function CalendarView() {
       serviceId: formData.serviceId,
       startTime: fullStartTime,
       duration: selectedService?.duration || 30,
-      totalPrice: selectedService?.price || 0
+      totalPrice: selectedService?.price || 0,
+      required_specialties: [selectedService?.category || 'COIFFURE']
     };
 
-    if (editingAppt) {
-      // MISE À JOUR
-      const { error } = await supabase.from('Booking').update(payload).eq('id', editingAppt.id);
-      if (error) alert(error.message);
-      else setIsModalOpen(false);
-    } else {
-      // INSERTION
-      const { error } = await supabase.from('Booking').insert([payload]);
-      if (error) alert(error.message);
-      else setIsModalOpen(false);
+    const { error } = editingAppt 
+      ? await supabase.from('Booking').update(payload).eq('id', editingAppt.id)
+      : await supabase.from('Booking').insert([payload]);
+
+    if (!error) {
+      setIsModalOpen(false);
+      loadData();
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Supprimer ce rendez-vous ?")) {
-      const { error } = await supabase.from('Booking').delete().eq('id', id);
-      if (error) alert(error.message);
-      else setIsModalOpen(false);
-    }
-  };
-
-  // --- CALCULS VISUELS ---
-  const getTop = (startTime: string) => {
-    const date = parseISO(startTime);
-    const dayStart = new Date(date);
-    dayStart.setHours(settings.start_hour, 0, 0, 0);
-    return (differenceInMinutes(date, dayStart) / 60) * PIXELS_PER_HOUR;
-  };
-
-  const getHeight = (duration: number) => {
-    return (duration / 60) * PIXELS_PER_HOUR;
-  };
-
-  if (loading) return <div className="p-20 text-center text-gold">Chargement du calendrier...</div>;
+  if (loading) return <div className="h-full flex items-center justify-center text-gold font-display text-2xl animate-pulse">Chargement du planning...</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden relative shadow-2xl">
+    <div className="flex flex-col h-full bg-[#050505] text-white">
       
-      {/* HEADER */}
-      <div className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-900/50 backdrop-blur-md z-30 text-white">
-        <div className="flex items-center gap-4">
-            <div className="flex items-center bg-black rounded-lg p-1 border border-zinc-800">
-                <button onClick={handlePrevDay} className="p-1 hover:text-gold transition-colors"><ChevronLeft size={20}/></button>
-                <button onClick={handleToday} className="px-3 text-xs font-bold uppercase tracking-widest border-x border-zinc-800">Aujourd'hui</button>
-                <button onClick={handleNextDay} className="p-1 hover:text-gold transition-colors"><ChevronRight size={20}/></button>
-            </div>
-            <h1 className="text-xl font-display font-bold capitalize">
-                {format(currentDate, 'EEEE d MMMM', { locale: fr })}
-            </h1>
+      {/* 1. HEADER DATE - PLUS D'ESPACE */}
+      <div className="bg-zinc-900/30 border-b border-white/5 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <div className="flex items-center gap-3 text-gold mb-2">
+            <Calendar size={16} />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Agenda Hay Riad</span>
+          </div>
+          <h1 className="text-5xl font-display uppercase italic tracking-tighter">
+            {format(currentDate, 'EEEE d MMMM', { locale: fr })}
+          </h1>
         </div>
 
         <div className="flex items-center gap-4">
-            <button onClick={loadData} className={`text-gold ${isRefreshing ? 'animate-spin' : ''}`}><RefreshCw size={20} /></button>
-            <button onClick={openNewModal} className="bg-gold text-black px-4 py-2 rounded-lg hover:bg-white transition font-bold flex items-center gap-2 text-sm shadow-gold-lg">
-                <Plus size={18} /> Nouveau RDV
-            </button>
+          <div className="flex bg-black border border-zinc-800 rounded-2xl p-1">
+            <button onClick={handlePrevDay} className="p-3 hover:text-gold transition-colors"><ChevronLeft size={24}/></button>
+            <button onClick={handleToday} className="px-6 text-[10px] font-black uppercase tracking-widest border-x border-zinc-800 hover:bg-zinc-900 transition-colors">Aujourd'hui</button>
+            <button onClick={handleNextDay} className="p-3 hover:text-gold transition-colors"><ChevronRight size={24}/></button>
+          </div>
+          <button onClick={openNewModal} className="bg-gold text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-gold/20 hover:scale-105 transition-all">
+            Nouveau RDV
+          </button>
         </div>
       </div>
 
-      {/* ZONE DE GRILLE */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* 2. CALENDRIER - SCROLL AMÉLIORÉ */}
+      <div className="flex-1 flex overflow-hidden relative">
         
-        {/* Colonne Heures */}
-        <div className="w-20 border-r border-zinc-800 bg-zinc-900/20 flex-shrink-0 overflow-hidden">
-            <div className="h-12 border-b border-zinc-800"></div> 
-            {Array.from({ length: settings.end_hour - settings.start_hour + 1 }).map((_, i) => (
-                <div key={i} className="text-[10px] text-zinc-500 text-center font-bold" style={{ height: `${PIXELS_PER_HOUR}px`, paddingTop: '10px' }}>
-                    {settings.start_hour + i}:00
+        {/* Grille de temps fixe (Heures) */}
+        <div className="w-20 border-r border-white/5 bg-black z-20 flex-shrink-0">
+          <div className="h-16 border-b border-white/5" /> {/* Espace pour le header barbier */}
+          <div className="relative overflow-hidden h-full">
+            <div className="absolute inset-0 overflow-y-auto scrollbar-hide pointer-events-none" ref={null}>
+              {Array.from({ length: settings.end_hour - settings.start_hour }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center justify-start text-[10px] font-black text-zinc-600 tracking-tighter" style={{ height: `${PIXELS_PER_HOUR}px`, paddingTop: '10px' }}>
+                  {(settings.start_hour + i).toString().padStart(2, '0')}:00
                 </div>
-            ))}
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Colonnes Barbiers */}
-        <div className="flex-1 flex overflow-x-auto relative">
+        {/* Zone des colonnes scrollable */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto bg-zinc-950/50 custom-scrollbar relative" ref={scrollContainerRef}>
+          
+          {/* Header Barbiers (Sticky) */}
+          <div className="sticky top-0 z-30 flex border-b border-white/5 bg-black/90 backdrop-blur-md">
             {barbers.map(barber => (
-                <div 
-                    key={barber.id} 
-                    className="flex-1 border-r border-zinc-800 min-w-[220px] relative group"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, barber.id)}
-                >
-                    {/* Header Barbier */}
-                    <div className="h-12 border-b border-zinc-800 bg-zinc-900/80 sticky top-0 z-20 flex items-center justify-center font-bold text-gold uppercase tracking-widest text-xs">
-                        {barber.full_name}
-                    </div>
-
-                    {/* Grille de fond */}
-                    <div className="absolute inset-0 pointer-events-none">
-                         {Array.from({ length: settings.end_hour - settings.start_hour + 1 }).map((_, i) => (
-                            <div key={i} className="border-b border-zinc-900/50" style={{ height: `${PIXELS_PER_HOUR}px` }}></div>
-                        ))}
-                    </div>
-
-                    {/* Rendez-vous */}
-                    <div className="relative" style={{ height: `${(settings.end_hour - settings.start_hour) * PIXELS_PER_HOUR}px` }}>
-                        {appointments
-                            .filter(appt => appt.barberId === barber.id)
-                            .map(appt => (
-                                <div
-                                    key={appt.id}
-                                    draggable
-                                    onDragStart={(e) => handleDragStart(e, appt)}
-                                    onClick={(e) => { e.stopPropagation(); openEditModal(appt); }}
-                                    className="absolute left-2 right-2 rounded-lg p-2 text-[11px] shadow-xl border-l-4 cursor-pointer hover:brightness-125 transition-all overflow-hidden z-10"
-                                    style={{
-                                        top: `${getTop(appt.startTime)}px`,
-                                        height: `${getHeight(appt.duration)}px`,
-                                        backgroundColor: '#18181b', 
-                                        borderColor: '#C9A84C', 
-                                        color: 'white',
-                                        borderWidth: '1px',
-                                        borderLeftWidth: '4px'
-                                    }}
-                                >
-                                    <div className="font-bold text-gold">{format(parseISO(appt.startTime), 'HH:mm')}</div>
-                                    <div className="font-medium truncate">{appt.clientName}</div>
-                                    <div className="text-[10px] text-zinc-500 truncate">{appt.Service?.title}</div>
-                                </div>
-                            ))
-                        }
-                    </div>
-                </div>
+              <div key={barber.id} className="min-w-[250px] flex-1 py-5 px-4 text-center border-r border-white/5">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{barber.full_name}</span>
+              </div>
             ))}
+          </div>
+
+          {/* Grille interactive */}
+          <div className="relative flex" style={{ height: `${(settings.end_hour - settings.start_hour) * PIXELS_PER_HOUR}px` }}>
+            
+            {/* Lignes de fond (Background Grid) */}
+            <div className="absolute inset-0 pointer-events-none">
+              {Array.from({ length: (settings.end_hour - settings.start_hour) * 2 }).map((_, i) => (
+                <div key={i} className={`border-b ${i % 2 === 0 ? 'border-white/5' : 'border-white/[0.02]'}`} style={{ height: `${PIXELS_PER_HOUR / 2}px` }} />
+              ))}
+            </div>
+
+            {/* Ligne d'heure actuelle */}
+            {getCurrentTimeTop() !== null && (
+              <div 
+                className="absolute left-0 right-0 z-40 flex items-center pointer-events-none"
+                style={{ top: `${getCurrentTimeTop()}px` }}
+              >
+                <div className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_red]" />
+                <div className="flex-1 h-[1px] bg-red-500/50" />
+              </div>
+            )}
+
+            {/* Colonnes des Barbiers */}
+            {barbers.map(barber => (
+              <div key={barber.id} className="min-w-[250px] flex-1 border-r border-white/5 relative">
+                
+                {appointments
+                  .filter(appt => appt.barberId === barber.id)
+                  .map(appt => (
+                    <motion.div
+                      key={appt.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      onClick={() => { setEditingAppt(appt); setFormData({
+                        clientName: appt.clientName, clientPhone: appt.clientPhone,
+                        serviceId: appt.serviceId, barberId: appt.barberId,
+                        startTime: format(parseISO(appt.startTime), 'HH:mm')
+                      }); setIsModalOpen(true); }}
+                      className="absolute left-3 right-3 rounded-2xl p-4 border border-gold/30 bg-zinc-900/90 shadow-2xl cursor-pointer group hover:border-gold hover:bg-zinc-800 transition-all z-10 overflow-hidden"
+                      style={{
+                        top: `${getTop(appt.startTime)}px`,
+                        height: `${getHeight(appt.duration)}px`,
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-[10px] font-black text-gold uppercase tracking-widest">
+                          {format(parseISO(appt.startTime), 'HH:mm')}
+                        </span>
+                        <Clock size={10} className="text-zinc-600 group-hover:text-gold transition-colors" />
+                      </div>
+                      <div className="font-bold text-sm uppercase tracking-tight truncate text-white">{appt.clientName}</div>
+                      <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-tighter truncate mt-1">
+                        {appt.Service?.title}
+                      </div>
+                    </motion.div>
+                  ))
+                }
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* MODALE D'ÉDITION / CRÉATION */}
+      {/* 3. MODALE D'ÉDITION LUXE */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-800/50">
-                    <h3 className="font-bold text-white uppercase tracking-widest text-sm">
-                      {editingAppt ? 'Modifier le RDV' : 'Nouveau Rendez-vous'}
-                    </h3>
-                    <button onClick={() => setIsModalOpen(false)}><X className="text-zinc-500 hover:text-white" /></button>
-                </div>
-
-                <form onSubmit={handleSave} className="p-6 space-y-4">
-                    <div className="space-y-1">
-                        <label className="text-[10px] text-zinc-500 uppercase font-bold">Nom du client</label>
-                        <input required className="w-full bg-black border border-zinc-800 p-3 rounded-lg text-white outline-none focus:border-gold" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                    </div>
-                    
-                    <div className="space-y-1">
-                        <label className="text-[10px] text-zinc-500 uppercase font-bold">Téléphone</label>
-                        <input required className="w-full bg-black border border-zinc-800 p-3 rounded-lg text-white outline-none focus:border-gold" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-zinc-500 uppercase font-bold">Prestation</label>
-                            <select className="w-full bg-black border border-zinc-800 p-3 rounded-lg text-white outline-none" value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
-                                {services.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] text-zinc-500 uppercase font-bold">Coiffeur</label>
-                            <select className="w-full bg-black border border-zinc-800 p-3 rounded-lg text-white outline-none" value={formData.barberId} onChange={e => setFormData({...formData, barberId: e.target.value})}>
-                                {barbers.map(b => <option key={b.id} value={b.id}>{b.full_name}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-[10px] text-zinc-500 uppercase font-bold">Heure</label>
-                        <input type="time" className="w-full bg-black border border-zinc-800 p-3 rounded-lg text-white outline-none focus:border-gold" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
-                    </div>
-
-                    <div className="pt-4 flex gap-3">
-                        {editingAppt && (
-                             <button type="button" onClick={() => handleDelete(editingAppt.id)} className="flex-1 border border-red-500/50 text-red-500 p-3 rounded-lg hover:bg-red-500 hover:text-white transition font-bold">Supprimer</button>
-                        )}
-                        <button type="submit" className="flex-1 bg-gold text-black p-3 rounded-lg font-bold hover:bg-white transition">
-                          {editingAppt ? 'Mettre à jour' : 'Enregistrer'}
-                        </button>
-                    </div>
-                </form>
+        <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-6 backdrop-blur-xl">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-zinc-900 rounded-[3rem] border border-zinc-800 p-10 w-full max-w-lg shadow-2xl">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-display uppercase italic">{editingAppt ? 'Détails du RDV' : 'Nouvelle Réservation'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white"><X size={30}/></button>
             </div>
+
+            <form onSubmit={handleSave} className="space-y-6">
+              <input required placeholder="NOM DU CLIENT" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold font-bold" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value.toUpperCase()})} />
+              <input required placeholder="NUMÉRO DE TÉLÉPHONE" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold font-bold" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <select className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold font-bold text-xs uppercase" value={formData.serviceId} onChange={e => setFormData({...formData, serviceId: e.target.value})}>
+                  {services.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                </select>
+                <select className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold font-bold text-xs uppercase" value={formData.barberId} onChange={e => setFormData({...formData, barberId: e.target.value})}>
+                  {barbers.map(b => <option key={b.id} value={b.id}>{b.full_name}</option>)}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-4">Heure du rendez-vous</label>
+                <input type="time" className="w-full bg-black border border-zinc-800 p-5 rounded-2xl text-white outline-none focus:border-gold font-black text-xl text-center" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
+              </div>
+
+              <div className="pt-6 flex gap-4">
+                {editingAppt && (
+                  <button type="button" onClick={() => { if(confirm("Supprimer ?")) supabase.from('Booking').delete().eq('id', editingAppt.id).then(() => { setIsModalOpen(false); loadData(); }); }} className="p-5 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={24}/></button>
+                )}
+                <button type="submit" className="flex-1 bg-gold text-black p-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-gold/20 hover:bg-white transition-all">
+                  {editingAppt ? 'Mettre à jour' : 'Confirmer le RDV'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
         </div>
       )}
     </div>
