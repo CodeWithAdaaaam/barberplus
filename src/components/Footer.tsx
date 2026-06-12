@@ -45,7 +45,7 @@ const Footer: React.FC = () => {
               >
                 <MapPin size={20} className="text-gold shrink-0 group-hover:scale-110 transition-transform duration-500"/> 
                 <span className="text-zinc-500 text-sm group-hover:text-white transition-colors leading-relaxed">
-                  City Center numéro B4<br/> Hay Riad, Rabat
+                  Prestigia Hay Riad<br/> Rabat
                 </span>
               </a>
 
