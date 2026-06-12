@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone } from 'lucide-react';
 import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
-import Logo from './BPLogo'; // Assure-toi que le nom du fichier est correct (Logo.tsx ou BPLogo.tsx)
+import Logo from './BPLogo';
 
 const Footer: React.FC = () => {
   return (
@@ -32,20 +32,20 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Colonne 3 : Contact & Localisation Directe */}
+          {/* Colonne 3 : Contact & Localisation Directe (MISE À JOUR) */}
           <div>
             <h4 className="font-display text-white text-xl uppercase italic mb-8 tracking-wider">Le Salon</h4>
             <div className="space-y-6">
-              {/* LIEN GOOGLE MAPS */}
+              {/* NOUVEAU LIEN GOOGLE MAPS PRÉCIS */}
               <a 
-                href="https://maps.app.goo.gl/XUsXgKFzFaq86Cvs9" 
+                href="https://www.google.com/maps/place/33%C2%B057'11.8%22N+6%C2%B052'51.3%22W/@33.9532726,-6.8809415,63m/data=!3m1!1e3!4m4!3m3!8m2!3d33.953282!4d-6.88092!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDYwOS4wIKXMDSoASAFQAw%3D%3D" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-start gap-4 group"
               >
                 <MapPin size={20} className="text-gold shrink-0 group-hover:scale-110 transition-transform duration-500"/> 
                 <span className="text-zinc-500 text-sm group-hover:text-white transition-colors leading-relaxed">
-                  City Center nimero B4<br/> Hay Riad, Rabat
+                  City Center numéro B4<br/> Hay Riad, Rabat
                 </span>
               </a>
 
@@ -68,7 +68,7 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-display text-white text-xl uppercase italic mb-8 tracking-wider">Social</h4>
             <div className="flex gap-4">
-              <a href="https://www.instagram.com/barber.plus.rabat/" className="w-12 h-12 rounded-2xl border border-white/5 bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:border-gold/50 hover:text-gold transition-all duration-500 group">
+              <a href="https://www.instagram.com/barber.plus.rabat/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-2xl border border-white/5 bg-zinc-900/50 flex items-center justify-center text-zinc-500 hover:border-gold/50 hover:text-gold transition-all duration-500 group">
                 <FaInstagram size={20} className="group-hover:scale-110 transition-transform" />
               </a>
               <a 
@@ -90,12 +90,10 @@ const Footer: React.FC = () => {
         {/* --- BARRE DE SIGNATURE FINALE --- */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-t border-white/5 pt-10 mt-10">
           
-          {/* Copyright Barber Plus */}
           <p className="text-[10px] text-zinc-600 uppercase tracking-[0.3em] font-medium">
             © 2026 Barber Plus Hay Riad. Tous droits réservés.
           </p>
           
-          {/* TA SIGNATURE PORTFOLIO */}
           <p className="text-[10px] text-zinc-600 uppercase tracking-[0.3em] font-medium">
             Créé par{" "}
             <a 
