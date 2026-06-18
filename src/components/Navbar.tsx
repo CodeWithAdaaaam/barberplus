@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
               to="/booking"
               className="bg-gold text-black px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-lg shadow-gold/20"
             >
-              Prendre Rang
+              Prendre RDV
             </Link>
           </div>
 
